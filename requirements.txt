@@ -1,0 +1,6 @@
+pillow
+pyyaml
+shapely
+lxml
+mapproxy>=1.11.0,<=1.11.99
+uwsgi
