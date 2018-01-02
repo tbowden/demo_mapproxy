@@ -45,6 +45,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     --no-install-recommends \
     python3 python3-pip
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    --no-install-recommends \
+    python3-dev
+
 # no more packages to install, clean up apt stuff so it doesn't get stale
 RUN rm -rf /var/lib/apt/lists
 
@@ -68,26 +72,35 @@ RUN export GNUPGHOME="$(mktemp -d)"; \
     # verify that the binary works
 RUN gosu nobody true 
 
-#RUN pip3 install virtualenvwrapper
+RUN pip3 install setuptools wheel
+
+RUN pip3 install virtualenvwrapper
 
 # put shell function source in a central location
-#RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> /etc/bash.bashrc
+RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> /etc/bash.bashrc
 
+# set so virtualenvwrapper can find python3
+ENV VIRTUALENVWRAPPER_PYTHON /usr/bin/python3
+
+# virtualevwrapper variables
 ENV WORKON_HOME /home/mapproxy/virtualenvs
 ENV PROJECT_HOME /home/mapproxy/projects
 
 RUN adduser --gecos mapproxy --disabled-password mapproxy
 
-#USER mapproxy
-#RUN ["/bin/bash", "-ic", "mkproject demo_mapproxy"]
+RUN mkdir /home/mapproxy/projects
+RUN chown mapproxy:mapproxy /home/mapproxy/projects
+
+USER mapproxy
+RUN ["/bin/bash", "-ic", "mkproject demo_mapproxy"]
+
+WORKDIR $PROJECT_HOME/demo_mapproxy
+ADD ./include/requirements.txt .
+
+RUN ["/bin/bash", "-ic", "workon demo_mapproxy && \
+    pip install -r requirements.txt"]
+
 
 EXPOSE 8080
-#WORKDIR $PROJECT_HOME/demo_mapproxy
-ADD ./requirements.txt .
-
-#RUN ["/bin/bash", "-ic", "workon demo_mapproxy && \
-#    pip install -r requirements.txt"]
-
-
 
 #USER root
