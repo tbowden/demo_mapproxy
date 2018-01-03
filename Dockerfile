@@ -49,9 +49,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     --no-install-recommends \
     python3-dev
 
-# no more packages to install, clean up apt stuff so it doesn't get stale
-RUN rm -rf /var/lib/apt/lists
-
 # because we're running mapproxy within a virtualenv, we have to use
 # gosu to start it from a script and still have it as process #1.
 ENV GOSU_VERSION 1.10
@@ -100,7 +97,19 @@ ADD ./include/requirements.txt .
 RUN ["/bin/bash", "-ic", "workon demo_mapproxy && \
     pip install -r requirements.txt"]
 
+ADD ./include/config.py .
+ADD ./include/uwsgi_cfg.ini .
+ADD ./include/log.ini .
 
+# mapproxy will run on port 8080- see uwsgi_cfg.ini
 EXPOSE 8080
 
-#USER root
+# temp for testing
+USER root
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  vim
+
+# no more packages to install, clean up apt stuff so it doesn't get stale
+RUN rm -rf /var/lib/apt/lists
+
+USER mapproxy
