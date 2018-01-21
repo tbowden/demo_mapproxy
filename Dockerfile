@@ -43,16 +43,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 # install python3 for mapproxy
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     --no-install-recommends \
-    python3 python3-pip
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    --no-install-recommends \
-    python3-dev
+    python3 python3-dev python3-pip
 
 # because we're running mapproxy within a virtualenv, we have to use
 # gosu to start it from a script and still have it as process #1.
 ENV GOSU_VERSION 1.10
 
+# code shamelessly borrowed from ...
 RUN set -ex; \
     dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
     wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
@@ -113,3 +110,5 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN rm -rf /var/lib/apt/lists
 
 USER mapproxy
+
+LABEL version=0.1
